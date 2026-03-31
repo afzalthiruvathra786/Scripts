@@ -1,24 +1,25 @@
 #!/bin/bash
 
-# Source and destination
 SOURCE="/var/log"
 DEST="/backup"
-
-# Create destination if not exists
-mkdir -p $DEST
-
-# Timestamp
+LOGFILE="/var/log/backup.log"
 DATE=$(date +%F-%H-%M)
-
-# Backup file name
 FILE="backup-$DATE.tar.gz"
 
-echo "Starting backup..."
+mkdir -p $DEST
 
-tar -czvf "$DEST/$FILE" "$SOURCE"
+echo "[$DATE] Backup started" >> $LOGFILE
+
+tar -czf "$DEST/$FILE" "$SOURCE"
 
 if [ $? -eq 0 ]; then
-    echo "Backup successful: $DEST/$FILE"
+    echo "[$DATE] Backup successful: $FILE" >> $LOGFILE
 else
-    echo "Backup failed!"
+    echo "[$DATE] Backup failed!" >> $LOGFILE
+    exit 1
 fi
+
+# Delete backups older than 7 days
+find $DEST -type f -name "*.tar.gz" -mtime +7 -exec rm {} \;
+
+echo "[$DATE] Old backups cleaned" >> $LOGFILE
